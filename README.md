@@ -1,55 +1,28 @@
-# 8-bit Pipelined Processor – Verilog
+# 8-bit Pipelined Von Neumann Processor – Verilog
 
-Designed and implemented a 5-stage 8-bit RISC-like pipelined processor in Verilog HDL  
-(ELC3030 – Advanced Processor Architecture, Cairo University)
+Advanced Processor Architecture Project (ELC3030 – Winter 2025)  
+Faculty of Engineering – Cairo University  
 
----
-
-## 📌 Overview
-
-This project implements a fully functional 8-bit CPU based on a custom ISA specification.
-
-The processor supports:
-
-- 32 ISA Instructions
-- 5-stage Pipelined Architecture
-- Data Hazard Detection
-- Forwarding Unit
-- Branch Control Logic
-- Interrupt Handling (RTI supported)
-- Stack Operations (PUSH / POP)
-- Von Neumann Memory Architecture
-- FSM-based Control Unit
+Designed and implemented a complete 5-stage pipelined 8-bit RISC-like processor in Verilog HDL with hazard mitigation, interrupt handling, and FPGA synthesis.
 
 ---
 
-## 🏗 Processor Architecture
+## 📌 Project Objective
 
-The processor consists of the following main components:
+The objective of this project is to:
 
-- Program Counter → `Pc.v`
-- Register File → `Register_file.v`
-- ALU → `another_ALU.v`
-- Control Unit → `Control_unit.v`
-- Condition Code Register → `CCR.v`
-- Forwarding Unit → `FU.v`
-- Hazard Unit → `HU.v`
-- Branch Unit → `Branch_Unit.v`
-- Interrupt Register → `interrupt_reg.v`
-- Memory → `Memory.v`
-- Output Register → `Out_reg.v`
-
-Top-level integration of all modules is handled by:
-
-```
-CPU_WrapperV3.v
-```
+1. Design and implement an 8-bit pipelined Von Neumann processor based on a custom ISA.
+2. Use a single shared memory for instruction and data access.
+3. Implement an FSM-based control unit.
+4. Support pipeline execution with hazard detection and forwarding.
+5. Verify functionality using HDL simulation and waveform analysis.
+6. (Bonus) Synthesize and analyze FPGA performance.
 
 ---
 
-## ⚙ Pipeline Architecture
+## 🏗 Architecture Overview
 
-The processor implements a 5-stage pipeline:
+The processor follows a classic 5-stage pipelined RISC architecture:
 
 1. IF  – Instruction Fetch  
 2. ID  – Instruction Decode  
@@ -57,61 +30,201 @@ The processor implements a 5-stage pipeline:
 4. MEM – Memory Access  
 5. WB  – Write Back  
 
-### Pipeline Registers Implemented:
+Main architectural blocks:
+
+- ALU (`another_ALU.v`)
+- Control Unit (`Control_unit.v`)
+- Hazard Unit (`HU.v`)
+- Forwarding Unit (`FU.v`)
+- Branch Unit (`Branch_Unit.v`)
+- Program Counter (`Pc.v`)
+- Memory – Dual Port Von Neumann (`Memory.v`)
+- Register File (`Register_file.v`)
+- CCR – Condition Code Register (`CCR.v`)
+- Interrupt Register (`interrupt_reg.v`)
+- Top-Level Integration (`CPU_WrapperV3.v`)
+
+---
+
+## ⚙️ Pipeline Registers
+
+Implemented pipeline registers:
 
 - `IF_ID_reg.v`
 - `ID_EX_Reg.v`
 - `Ex_Mem.v`
 - `MEM_WB_Reg.v`
 
-These registers isolate pipeline stages and enable parallel instruction execution.
+These registers isolate pipeline stages and allow concurrent execution of multiple instructions.
 
 ---
 
-## 🚦 Hazard Handling
+## 🧮 ALU
 
-### 🔹 Data Hazards
+The ALU is a combinational execution unit located in the EX stage.
 
-- Detected by `HU.v`
-- Resolved using forwarding logic implemented in `FU.v`
-- Forwarding paths from:
-  - EX/MEM stage
-  - MEM/WB stage
+### Supported Operations:
 
-This reduces unnecessary stalls and improves performance.
+- Arithmetic: ADD, SUB, INC, DEC, NEG
+- Logical: AND, OR, NOT
+- Rotate: RLC, RRC
+- Flag Control: SETC, CLRC
+- Data Movement: PASS A, PASS B
+
+### Flags:
+
+- Z – Zero
+- N – Negative
+- C – Carry
+- V – Overflow
+
+A flag mask mechanism enables selective flag updates, improving pipeline behavior.
 
 ---
+
+## 🧠 Control Unit
+
+The Control Unit:
+
+- Decodes opcode and subfields
+- Generates all pipeline control signals
+- Handles CALL/RET/RTI
+- Manages immediate instructions
+- Controls interrupt injection
+- Implements internal FSM:
+  - RESET
+  - FETCH
+  - FETCH_IMM
+
+---
+
+## 🚦 Hazard Unit (HU)
+
+The Hazard Unit handles:
+
+### 🔹 Load-Use Data Hazards
+- Stalls PC
+- Freezes IF/ID
+- Injects bubble into ID/EX
 
 ### 🔹 Control Hazards
+- Flushes IF/ID when branch is taken
 
-- Managed using `Branch_Unit.v`
-- Pipeline control logic performs stall and flush operations when required.
-
----
-
-## ⚡ Interrupt Handling
-
-On rising edge of interrupt signal:
-
-- Current PC is pushed to stack
-- Flags are preserved
-- PC is loaded from memory location 1
-- Interrupt Service Routine executes
-- `RTI` restores PC and condition flags
-
-Interrupt logic implemented in:
-
-```
-interrupt_reg.v
-```
+Truth table implemented for all hazard combinations.
 
 ---
 
-## 📂 RTL Structure
+## 🔁 Forwarding Unit (FU)
+
+Eliminates unnecessary stalls caused by RAW hazards.
+
+Supports:
+
+- EX/MEM → EX forwarding (highest priority)
+- MEM/WB → EX forwarding
+- ID-stage forwarding
+
+Forwarding select encoding:
+
+| Code | Source        |
+|------|--------------|
+| 00   | ID/EX value  |
+| 01   | MEM/WB value |
+| 10   | EX/MEM value |
+
+---
+
+## 🌿 Branch Unit
+
+Branch resolution occurs in the EX stage.
+
+Supports:
+
+- Conditional branches (JZ, JN, JC, JV)
+- LOOP
+- JMP
+- CALL
+- RET / RTI
+
+Outputs:
+- B_TAKE
+- PC_SRC
+
+---
+
+## 🔔 Interrupt Handling
+
+Interrupts are treated as implicit CALL instructions:
+
+- PC pushed to stack
+- Flags preserved
+- PC redirected to interrupt vector
+- Pipeline bubbles injected
+- RTI restores flags and PC
+
+Ensures precise interrupt behavior in a pipelined environment.
+
+---
+
+## 🗂 Memory (Von Neumann)
+
+Dual-port memory:
+
+- Port A → Instruction Fetch
+- Port B → Data Access
+
+Memory layout:
+
+- 0–127 → Instruction Memory
+- 128–255 → Data & Stack Memory
+
+---
+
+## 📦 Register File
+
+- 4 general-purpose registers
+- Asynchronous read
+- Synchronous write
+- Dedicated Stack Pointer (SP)
+- SP supports increment/decrement for PUSH/POP
+
+---
+
+## 🏁 FPGA Synthesis (Bonus)
+
+Synthesized using Xilinx Vivado on:
+
+- AMD XC7A35T-1CPG FPGA
+
+Obtained:
+- Maximum operating frequency
+- Resource utilization report
+
+---
+
+## 🧪 Verification
+
+Simulation performed using:
+
+- ModelSim
+- Waveform analysis
+
+Verified:
+
+- Arithmetic instructions
+- Logical instructions
+- Branching
+- Stack operations
+- Interrupt behavior
+- Hazard scenarios
+- Forwarding correctness
+
+---
+
+## 📂 RTL File Structure
 
 ```
 RTL/
-│
 ├── another_ALU.v
 ├── Branch_Unit.v
 ├── CCR.v
@@ -135,45 +248,30 @@ RTL/
 
 ---
 
-## 🧪 Testbench
-
-Testbench verifies:
-
-- Arithmetic instructions (ADD, SUB, INC, DEC)
-- Logical instructions (AND, OR, NOT)
-- Branch instructions (JZ, JN, JC, JV)
-- Memory operations (LDM, LDD, STD, LDI, STI)
-- Stack operations (PUSH, POP)
-- Interrupt behavior
-
-Simulation performed using:
-
-- ModelSim
-- EDA Playground
-
----
-
-## 🛠 Tools Used
-
-- Verilog HDL
-- ModelSim
-- Git & GitHub
-
----
-
 ## 🎯 Key Learning Outcomes
 
 - Pipelined CPU Design
-- Hazard Detection & Forwarding
-- Interrupt Mechanisms
+- Hazard Detection & Stall Control
+- Data Forwarding Mechanisms
+- Branch Resolution in EX Stage
+- Interrupt Handling in Pipelines
 - FSM-based Control Design
-- Modular RTL Design
-- Hardware Debugging & Simulation
+- FPGA Synthesis & Timing Analysis
+- Modular RTL Architecture
+
+---
+
+## 📄 Full Report
+
+Detailed documentation including architecture diagrams, module descriptions, truth tables, and FPGA synthesis results:
+
+📘 See the full project report here:  
+[Final Report v1.pdf](<sandbox:/mnt/data/Final Report v1.pdf>) :contentReference[oaicite:0]{index=0}
 
 ---
 
 ## 👨‍💻 Author
 
-Mostafa Farhan  
+Mostafa Mohamed Farhan  
 Electronics & Communications Engineering  
-Cairo University
+Cairo University – Winter 2025
