@@ -266,12 +266,5 @@ RTL/
 Detailed documentation including architecture diagrams, module descriptions, truth tables, and FPGA synthesis results:
 
 📘 See the full project report here:  
-[Final Report v1.pdf](<sandbox:/mnt/data/Final Report v1.pdf>) :contentReference[oaicite:0]{index=0}
+[Final Report v1.pdf](<sandbox:/mnt/data/Final Report v1.pdf>)
 
----
-
-## 👨‍💻 Author
-
-Mostafa Mohamed Farhan  
-Electronics & Communications Engineering  
-Cairo University – Winter 2025
