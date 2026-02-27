@@ -59,7 +59,7 @@ These registers isolate pipeline stages and allow concurrent execution of multip
 
 ---
 
-## 🧮 ALU
+##  ALU
 
 The ALU is a combinational execution unit located in the EX stage.
 
@@ -82,7 +82,7 @@ A flag mask mechanism enables selective flag updates, improving pipeline behavio
 
 ---
 
-## 🧠 Control Unit
+##  Control Unit
 
 The Control Unit:
 
@@ -114,7 +114,7 @@ Truth table implemented for all hazard combinations.
 
 ---
 
-## 🔁 Forwarding Unit (FU)
+##  Forwarding Unit (FU)
 
 Eliminates unnecessary stalls caused by RAW hazards.
 
@@ -134,7 +134,7 @@ Forwarding select encoding:
 
 ---
 
-## 🌿 Branch Unit
+##  Branch Unit
 
 Branch resolution occurs in the EX stage.
 
@@ -152,7 +152,7 @@ Outputs:
 
 ---
 
-## 🔔 Interrupt Handling
+##  Interrupt Handling
 
 Interrupts are treated as implicit CALL instructions:
 
@@ -166,7 +166,7 @@ Ensures precise interrupt behavior in a pipelined environment.
 
 ---
 
-## 🗂 Memory (Von Neumann)
+##  Memory (Von Neumann)
 
 Dual-port memory:
 
@@ -180,7 +180,7 @@ Memory layout:
 
 ---
 
-## 📦 Register File
+##  Register File
 
 - 4 general-purpose registers
 - Asynchronous read
@@ -190,7 +190,7 @@ Memory layout:
 
 ---
 
-## 🏁 FPGA Synthesis (Bonus)
+##  FPGA Synthesis (Bonus)
 
 Synthesized using Xilinx Vivado on:
 
@@ -202,7 +202,7 @@ Obtained:
 
 ---
 
-## 🧪 Verification
+##  Verification
 
 Simulation performed using:
 
@@ -248,7 +248,7 @@ RTL/
 
 ---
 
-## 🎯 Key Learning Outcomes
+##  Key Learning Outcomes
 
 - Pipelined CPU Design
 - Hazard Detection & Stall Control
@@ -266,5 +266,5 @@ RTL/
 Detailed documentation including architecture diagrams, module descriptions, truth tables, and FPGA synthesis results:
 
 📘 See the full project report here:  
-[Final Report v1.pdf](<sandbox:/mnt/data/Final Report v1.pdf>)
+[Final Report v1.pdf] in Documents
 
